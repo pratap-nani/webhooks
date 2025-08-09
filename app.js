@@ -23,6 +23,10 @@ app.get('/', (req, res) => {
   }
 });
 
+app.get('/status', (req, res) => {
+    res.status(200).send('OK');
+});
+
 // Route for POST requests
 app.post('/', (req, res) => {
   const timestamp = new Date().toISOString().replace('T', ' ').slice(0, 19);
