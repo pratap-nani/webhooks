@@ -78,15 +78,17 @@ app.post('/', (req, res) => {
 
 // Route for POST requests
 app.get('/message', (req, res) => {
-  
-let msg = req.body;
 
-const recipient = msg.to;
-const template = msg.templateid;
-const token = msg.apikey;
-const phoneId = msg.from;
+const { 'apikey': apikey, 'from': from, 'templateid': templateid, 'type' : type, 'to' : to, 'placeholders' : placeholders } = req.query;
 
-let msgPlaceholders = msg.placeholders.split('|~|');
+//let msg = JSON.parse(req.query);
+
+const recipient = to;
+const template = templateid;
+const token = apikey;
+const phoneId = from;
+
+let msgPlaceholders = placeholders.split('|~|');
 let templateComponents = msgPlaceholders.map((item) => { return {"type": "text", "text" : item}; });
 
 const components = [
