@@ -78,16 +78,8 @@ app.post('/', (req, res) => {
 
 // Route for POST requests
 app.get('/message', (req, res) => {
-  //const { 'hub.mode': mode, 'hub.challenge': challenge, 'hub.verify_token': token } = req.query;
-  const timestamp = new Date().toISOString().replace('T', ' ').slice(0, 19);
-  console.log(`\n\nMessage Received ${timestamp}\n`);
-  console.log(req.query);
-  res.status(200).end();
-});
-
-// Route for POST requests
-app.post('/message', (req, res) => {
-  let msg = req.body;
+  
+let msg = req.body;
 
 const recipient = msg.to;
 const template = msg.templateid;
@@ -108,7 +100,36 @@ const components = [
 sendWhatsAppTemplateMessage(recipient, template, components, token, phoneId);
 
   const timestamp = new Date().toISOString().replace('T', ' ').slice(0, 19);
-  console.log(`\n\nMessage Sent ${timestamp}\n`);
+  console.log(`\n\nGet - Message Sent ${timestamp}\n`);
+  console.log(req.query);
+  res.status(200).end();
+});
+
+// Route for POST requests
+app.post('/message', (req, res) => {
+
+let msg = req.body;
+
+const recipient = msg.to;
+const template = msg.templateid;
+const token = msg.apikey;
+const phoneId = msg.from;
+
+let msgPlaceholders = msg.placeholders.split('|~|');
+let templateComponents = msgPlaceholders.map((item) => { return {"type": "text", "text" : item}; });
+
+const components = [
+  {
+    type: 'body',
+    parameters: templateComponents
+  }
+];
+
+
+sendWhatsAppTemplateMessage(recipient, template, components, token, phoneId);
+
+  const timestamp = new Date().toISOString().replace('T', ' ').slice(0, 19);
+  console.log(`\n\nPost - Message Sent ${timestamp}\n`);
   console.log(JSON.stringify(components, null, 2));
   res.status(200).end();
 });
