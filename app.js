@@ -37,6 +37,15 @@ app.post('/', (req, res) => {
 
 
 // Route for POST requests
+app.get('/message', (req, res) => {
+  //const { 'hub.mode': mode, 'hub.challenge': challenge, 'hub.verify_token': token } = req.query;
+  const timestamp = new Date().toISOString().replace('T', ' ').slice(0, 19);
+  console.log(`\n\nMessage Received ${timestamp}\n`);
+  console.log(req.query);
+  res.status(200).end();
+});
+
+// Route for POST requests
 app.post('/message', (req, res) => {
   const timestamp = new Date().toISOString().replace('T', ' ').slice(0, 19);
   console.log(`\n\nMessage Received ${timestamp}\n`);
