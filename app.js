@@ -35,6 +35,15 @@ app.post('/', (req, res) => {
   res.status(200).end();
 });
 
+
+// Route for POST requests
+app.post('/message', (req, res) => {
+  const timestamp = new Date().toISOString().replace('T', ' ').slice(0, 19);
+  console.log(`\n\nMessage Received ${timestamp}\n`);
+  console.log(JSON.stringify(req.body, null, 2));
+  res.status(200).end();
+});
+
 // Start the server
 app.listen(port, () => {
   console.log(`\nListening on port ${port}\n`);
