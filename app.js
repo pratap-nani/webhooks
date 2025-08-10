@@ -76,7 +76,7 @@ app.post('/', (req, res) => {
 });
 
 
-// Route for POST requests
+// Route for Get requests
 app.get('/message', (req, res) => {
 
 const { 'apikey': apikey, 'from': from, 'templateid': templateid, 'type' : type, 'to' : to, 'placeholders' : placeholders } = req.query;
@@ -103,7 +103,7 @@ sendWhatsAppTemplateMessage(recipient, template, components, token, phoneId);
 
   const timestamp = new Date().toISOString().replace('T', ' ').slice(0, 19);
   console.log(`\n\nGet - Message Sent ${timestamp}\n`);
-  console.log(req.query);
+  //console.log(req.query);
   res.status(200).end();
 });
 
