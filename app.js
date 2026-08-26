@@ -50,6 +50,37 @@ async function sendWhatsAppTemplateMessage(recipientNumber, templateName, templa
 }
 
 
+// send message using whats crm
+async function sendWACrmTemplateMessage(recipientNumber, templateName, templateParameters, accessToken, wacrmUrl) {
+  const data = {
+  "to": recipientNumber,
+  "type": "template",
+  "template": {
+    "name": templateName,
+    "language": "en",
+    "params": templateParameters     
+  }
+};
+
+  const config = {
+    method: 'post',
+    url: `${wacrmUrl}/api/v1/messages`, // Adjust version as needed
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+      'Content-Type': 'application/json'
+    },
+    data: JSON.stringify(data)
+  };
+
+  try {
+    const response = await axios(config);
+    console.log('Message sent successfully:', response.data);
+  } catch (error) {
+    console.error('Error sending message:', error.response ? error.response.data : error.message);
+  }
+}
+
+
 
 // Route for GET requests
 app.get('/', (req, res) => {
@@ -127,12 +158,32 @@ const components = [
   }
 ];
 
-
 sendWhatsAppTemplateMessage(recipient, template, components, token, phoneId);
 
   const timestamp = new Date().toISOString().replace('T', ' ').slice(0, 19);
   console.log(`\n\nPost - Message Sent ${timestamp}\n`);
   console.log(JSON.stringify(components, null, 2));
+  res.status(200).end();
+});
+
+
+// Route for POST requests
+app.post('/crmmessage', (req, res) => {
+
+let msg = req.body;
+
+const recipient = msg.to;
+const template = msg.templateid;
+const token = msg.apikey;
+const wacrmUrl = msg.from;
+
+let msgPlaceholders = msg.placeholders.split('|~|');
+
+sendWACrmTemplateMessage(recipient, template, msgPlaceholders, token, wacrmUrl);
+
+  const timestamp = new Date().toISOString().replace('T', ' ').slice(0, 19);
+  console.log(`\n\nPost - Message Sent ${timestamp}\n`);
+  console.log(JSON.stringify(msgPlaceholders, null, 2));
   res.status(200).end();
 });
 
