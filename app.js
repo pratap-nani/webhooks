@@ -53,14 +53,14 @@ async function sendWhatsAppTemplateMessage(recipientNumber, templateName, templa
 // send message using whats crm
 async function sendWACrmTemplateMessage(recipientNumber, templateName, templateParameters, accessToken, wacrmUrl) {
   const data = {
-  "to": recipientNumber,
-  "type": "template",
-  "template": {
-    "name": templateName,
-    "language": "en",
-    "params": templateParameters     
-  }
-};
+    "to": recipientNumber,
+    "type": "template",
+    "template": {
+      "name": templateName,
+      "language": "en",
+      "params": templateParameters
+    }
+  };
 
   const config = {
     method: 'post',
@@ -74,13 +74,12 @@ async function sendWACrmTemplateMessage(recipientNumber, templateName, templateP
 
   try {
     const response = await axios(config);
-    console.log('Message sent successfully:', response.data);
+    return { isSuccess: true, status: 'success', data: response.data.data.whatsapp_message_id };
   } catch (error) {
     console.error('Error sending message:', error.response ? error.response.data : error.message);
+    return { isSuccess: false, status: 'error', data: (error.response ? JSON.stringify(error.response.data) : error.message) };
   }
 }
-
-
 
 // Route for GET requests
 app.get('/', (req, res) => {
@@ -95,7 +94,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/status', (req, res) => {
-    res.status(200).send('OK');
+  res.status(200).send('OK');
 });
 
 // Route for POST requests
@@ -110,27 +109,27 @@ app.post('/', (req, res) => {
 // Route for Get requests
 app.get('/message', (req, res) => {
 
-const { 'apikey': apikey, 'from': from, 'templateid': templateid, 'type' : type, 'to' : to, 'placeholders' : placeholders } = req.query;
+  const { 'apikey': apikey, 'from': from, 'templateid': templateid, 'type': type, 'to': to, 'placeholders': placeholders } = req.query;
 
-//let msg = JSON.parse(req.query);
+  //let msg = JSON.parse(req.query);
 
-const recipient = to;
-const template = templateid;
-const token = apikey;
-const phoneId = from;
+  const recipient = to;
+  const template = templateid;
+  const token = apikey;
+  const phoneId = from;
 
-let msgPlaceholders = placeholders.split('|~|');
-let templateComponents = msgPlaceholders.map((item) => { return {"type": "text", "text" : item}; });
+  let msgPlaceholders = placeholders.split('|~|');
+  let templateComponents = msgPlaceholders.map((item) => { return { "type": "text", "text": item }; });
 
-const components = [
-  {
-    type: 'body',
-    parameters: templateComponents
-  }
-];
+  const components = [
+    {
+      type: 'body',
+      parameters: templateComponents
+    }
+  ];
 
 
-sendWhatsAppTemplateMessage(recipient, template, components, token, phoneId);
+  sendWhatsAppTemplateMessage(recipient, template, components, token, phoneId);
 
   const timestamp = new Date().toISOString().replace('T', ' ').slice(0, 19);
   console.log(`\n\nGet - Message Sent ${timestamp}\n`);
@@ -141,24 +140,24 @@ sendWhatsAppTemplateMessage(recipient, template, components, token, phoneId);
 // Route for POST requests
 app.post('/message', (req, res) => {
 
-let msg = req.body;
+  let msg = req.body;
 
-const recipient = msg.to;
-const template = msg.templateid;
-const token = msg.apikey;
-const phoneId = msg.from;
+  const recipient = msg.to;
+  const template = msg.templateid;
+  const token = msg.apikey;
+  const phoneId = msg.from;
 
-let msgPlaceholders = msg.placeholders.split('|~|');
-let templateComponents = msgPlaceholders.map((item) => { return {"type": "text", "text" : item}; });
+  let msgPlaceholders = msg.placeholders.split('|~|');
+  let templateComponents = msgPlaceholders.map((item) => { return { "type": "text", "text": item }; });
 
-const components = [
-  {
-    type: 'body',
-    parameters: templateComponents
-  }
-];
+  const components = [
+    {
+      type: 'body',
+      parameters: templateComponents
+    }
+  ];
 
-sendWhatsAppTemplateMessage(recipient, template, components, token, phoneId);
+  sendWhatsAppTemplateMessage(recipient, template, components, token, phoneId);
 
   const timestamp = new Date().toISOString().replace('T', ' ').slice(0, 19);
   console.log(`\n\nPost - Message Sent ${timestamp}\n`);
@@ -167,44 +166,47 @@ sendWhatsAppTemplateMessage(recipient, template, components, token, phoneId);
 });
 
 
-app.get('/crmmessage', (req, res) => {
+app.get('/crmmessage', async (req, res) => {
 
-const { 'apikey': apikey, 'from': from, 'templateid': templateid, 'type' : type, 'to' : to, 'placeholders' : placeholders } = req.query;
+  const { 'apikey': apikey, 'from': from, 'templateid': templateid, 'type': type, 'to': to, 'placeholders': placeholders } = req.query;
 
-console.log(req.query);
+  const recipient = to;
+  const template = templateid;
+  const token = apikey;
+  const wacrmUrl = from;
 
-const recipient = to;
-const template = templateid;
-const token = apikey;
-const wacrmUrl = from;
+  let msgPlaceholders = placeholders.split('|~|');
 
-let msgPlaceholders = placeholders.split('|~|');
-
-sendWACrmTemplateMessage(recipient, template, msgPlaceholders, token, wacrmUrl);
-
-  const timestamp = new Date().toISOString().replace('T', ' ').slice(0, 19);
-  console.log(`\n\nPost - Message Sent ${timestamp}\n`);
-  res.status(200).end();
+  const result = await sendWACrmTemplateMessage(recipient, template, msgPlaceholders, token, wacrmUrl);
+  console.log(JSON.stringify(result, null, 2));
+  if (result.isSuccess) {
+    res.status(200).json({ status: 'SUCCESS', "message": "Message Processed Successfully", "data": result.data }).end();
+  }
+  else {
+    res.status(200).json({ status: 'ERROR', "message": "Failed to process message", "data": result.data }).end();
+  }
 
 });
 
 // Route for POST requests
-app.post('/crmmessage', (req, res) => {
+app.post('/crmmessage', async (req, res) => {
 
-let msg = req.body;
+  let msg = req.body;
 
-const recipient = msg.to;
-const template = msg.templateid;
-const token = msg.apikey;
-const wacrmUrl = msg.from;
+  const recipient = msg.to;
+  const template = msg.templateid;
+  const token = msg.apikey;
+  const wacrmUrl = msg.from;  
 
-let msgPlaceholders = msg.placeholders.split('|~|');
+  let msgPlaceholders = msg.placeholders.split('|~|');
 
-sendWACrmTemplateMessage(recipient, template, msgPlaceholders, token, wacrmUrl);
-
-  const timestamp = new Date().toISOString().replace('T', ' ').slice(0, 19);
-  console.log(`\n\nPost - Message Sent ${timestamp}\n`);
-  res.status(200).end();
+  const result = await sendWACrmTemplateMessage(recipient, template, msgPlaceholders, token, wacrmUrl);
+  if(result.isSuccess) {
+    res.status(200).json({ status: 'SUCCESS', "message": "Message Processed Successfully", "data": result.data }).end();
+  }
+  else {
+    res.status(200).json({ status: 'ERROR', "message": "Failed to process message", "data": result.data }).end();
+  }
 });
 
 // Start the server
