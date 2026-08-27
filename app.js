@@ -167,6 +167,27 @@ sendWhatsAppTemplateMessage(recipient, template, components, token, phoneId);
 });
 
 
+app.get('/crmmessage', (req, res) => {
+
+const { 'apikey': apikey, 'from': from, 'templateid': templateid, 'type' : type, 'to' : to, 'placeholders' : placeholders } = req.query;
+
+console.log(req.query);
+
+const recipient = to;
+const template = templateid;
+const token = apikey;
+const wacrmUrl = from;
+
+let msgPlaceholders = placeholders.split('|~|');
+
+sendWACrmTemplateMessage(recipient, template, msgPlaceholders, token, wacrmUrl);
+
+  const timestamp = new Date().toISOString().replace('T', ' ').slice(0, 19);
+  console.log(`\n\nPost - Message Sent ${timestamp}\n`);
+  res.status(200).end();
+
+});
+
 // Route for POST requests
 app.post('/crmmessage', (req, res) => {
 
@@ -183,7 +204,6 @@ sendWACrmTemplateMessage(recipient, template, msgPlaceholders, token, wacrmUrl);
 
   const timestamp = new Date().toISOString().replace('T', ' ').slice(0, 19);
   console.log(`\n\nPost - Message Sent ${timestamp}\n`);
-  console.log(JSON.stringify(msgPlaceholders, null, 2));
   res.status(200).end();
 });
 
